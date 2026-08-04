@@ -1,0 +1,22 @@
+{
+  "name": "Cap Piano",
+  "short_name": "Cap Piano",
+  "description": "PWA d'apprentissage visuel et progressif du piano sur iPad et tablette",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#020617",
+  "theme_color": "#020617",
+  "orientation": "landscape",
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
