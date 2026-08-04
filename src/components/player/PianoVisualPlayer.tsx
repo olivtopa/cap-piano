@@ -2,41 +2,17 @@
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import * as Tone from "tone";
-import { Play, Pause, RotateCcw, Music, Sparkles, Sliders } from "lucide-react";
+import { Play, Pause, RotateCcw, Music, Sparkles, Sliders, ChevronLeft, ChevronRight, BookOpen } from "lucide-react";
 import dynamic from "next/dynamic";
 import { ExerciseData, Hand, EvaluationScore, NoteEvent } from "@/types/exercise";
 import SelfEvaluationModal from "./SelfEvaluationModal";
 import { calculateSM2 } from "@/lib/srs/sm2Algorithm";
 import { saveExerciseProgress, getExerciseProgress } from "@/lib/db/indexedDB";
+import { EXERCISES_DATABASE } from "@/lib/exercisesData";
 
 const SheetMusicView = dynamic(() => import("./SheetMusicView"), {
   ssr: false,
 });
-
-const SAMPLE_EXERCISE: ExerciseData = {
-  id: "ex-1",
-  title: "Gamme de Do Majeur & Harmonies Base",
-  description: "Entraînement au passage du pouce et coordination des deux mains.",
-  bpm: 75,
-  timeSignature: [4, 4],
-  notes: [
-    // Main Droite (Clé de Sol)
-    { time: "0:0:0", note: "C4", duration: "4n", hand: "right", finger: 1 },
-    { time: "0:1:0", note: "D4", duration: "4n", hand: "right", finger: 2 },
-    { time: "0:2:0", note: "E4", duration: "4n", hand: "right", finger: 3 },
-    { time: "0:3:0", note: "F4", duration: "4n", hand: "right", finger: 1 },
-    { time: "1:0:0", note: "G4", duration: "4n", hand: "right", finger: 2 },
-    { time: "1:1:0", note: "A4", duration: "4n", hand: "right", finger: 3 },
-    { time: "1:2:0", note: "B4", duration: "4n", hand: "right", finger: 4 },
-    { time: "1:3:0", note: "C5", duration: "4n", hand: "right", finger: 5 },
-
-    // Main Gauche (Clé de Fa)
-    { time: "0:0:0", note: "C3", duration: "2n", hand: "left", finger: 5 },
-    { time: "0:2:0", note: "G3", duration: "2n", hand: "left", finger: 1 },
-    { time: "1:0:0", note: "C3", duration: "2n", hand: "left", finger: 5 },
-    { time: "1:2:0", note: "G3", duration: "2n", hand: "left", finger: 1 },
-  ],
-};
 
 const PIANO_KEYS = [
   { note: "C3", isBlack: false }, { note: "C#3", isBlack: true },
@@ -56,11 +32,10 @@ const PIANO_KEYS = [
   { note: "C5", isBlack: false },
 ];
 
-export default function PianoVisualPlayer({
-  exercise = SAMPLE_EXERCISE,
-}: {
-  exercise?: ExerciseData;
-}) {
+export default function PianoVisualPlayer() {
+  const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
+  const exercise = EXERCISES_DATABASE[currentExerciseIndex];
+
   const [isPlaying, setIsPlaying] = useState(false);
   const [bpm, setBpm] = useState(exercise.bpm);
   const [selectedHand, setSelectedHand] = useState<Hand>("both");
@@ -75,6 +50,11 @@ export default function PianoVisualPlayer({
   const synthRef = useRef<Tone.PolySynth | null>(null);
   const metronomeRef = useRef<Tone.MembraneSynth | null>(null);
   const partRef = useRef<Tone.Part | null>(null);
+
+  // Mettre à jour le BPM si on change d'exercice
+  useEffect(() => {
+    setBpm(exercise.bpm);
+  }, [currentExerciseIndex, exercise.bpm]);
 
   useEffect(() => {
     const synth = new Tone.PolySynth(Tone.Synth, {
@@ -186,6 +166,16 @@ export default function PianoVisualPlayer({
     setActiveNotes(new Map());
   };
 
+  const handleNextExercise = () => {
+    stopPlay();
+    setCurrentExerciseIndex((prev) => (prev + 1) % EXERCISES_DATABASE.length);
+  };
+
+  const handlePrevExercise = () => {
+    stopPlay();
+    setCurrentExerciseIndex((prev) => (prev - 1 + EXERCISES_DATABASE.length) % EXERCISES_DATABASE.length);
+  };
+
   const handleSelfEvaluation = async (score: EvaluationScore) => {
     setShowEvaluation(false);
     stopPlay();
@@ -198,11 +188,16 @@ export default function PianoVisualPlayer({
       ...updatedMetrics,
       lastEvaluated: new Date().toISOString(),
     });
+
+    // Passer automatiquement à l'exercice suivant si succès
+    if (score === "good" || score === "easy") {
+      handleNextExercise();
+    }
   };
 
   return (
     <div className="flex flex-col gap-3 md:gap-4 bg-slate-950 text-slate-100 p-4 md:p-6 rounded-[2rem] shadow-2xl border border-slate-800/80 max-w-5xl mx-auto select-none backdrop-blur-xl relative overflow-hidden max-h-[96vh] justify-between">
-      {/* Background Light Halo */}
+      {/* Halo de lumière */}
       <div className="absolute -top-32 -left-32 w-80 h-80 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute -bottom-32 -right-32 w-80 h-80 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
 
@@ -216,12 +211,12 @@ export default function PianoVisualPlayer({
         }}
       />
 
-      {/* En-tête Compact pour iPad */}
+      {/* En-tête avec Sélecteur d'Exercices */}
       <div className="flex flex-row items-center justify-between pb-3 border-b border-slate-800/80">
         <div>
           <div className="flex items-center gap-2 mb-0.5">
             <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center gap-1">
-              <Sparkles className="w-3 h-3" /> Guide Pédagogique Visuel
+              <BookOpen className="w-3 h-3" /> Exercice {currentExerciseIndex + 1} / {EXERCISES_DATABASE.length}
             </span>
           </div>
           <h1 className="text-xl md:text-2xl font-extrabold text-white tracking-tight">
@@ -229,17 +224,29 @@ export default function PianoVisualPlayer({
           </h1>
         </div>
 
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 bg-slate-900/90 px-3 py-1.5 rounded-xl border border-slate-800 shadow-sm">
-            <Music className="w-4 h-4 text-emerald-400" />
-            <span className="text-xs font-bold text-slate-200">
-              {exercise.timeSignature[0]}/{exercise.timeSignature[1]}
-            </span>
-          </div>
+        {/* Boutons Suivant / Précédent */}
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handlePrevExercise}
+            className="p-2 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-slate-800 text-slate-300 transition-all active:scale-95"
+            title="Exercice Précédent"
+          >
+            <ChevronLeft className="w-5 h-5" />
+          </button>
+          <span className="text-xs font-bold text-slate-400 px-1">
+            {currentExerciseIndex + 1}/{EXERCISES_DATABASE.length}
+          </span>
+          <button
+            onClick={handleNextExercise}
+            className="p-2 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-slate-800 text-emerald-400 transition-all active:scale-95 flex items-center gap-1 font-bold text-xs"
+            title="Exercice Suivant"
+          >
+            <ChevronRight className="w-5 h-5" />
+          </button>
         </div>
       </div>
 
-      {/* Partition VexFlow Haute Visibilité Blanc Pur */}
+      {/* Partition VexFlow */}
       <div className="w-full">
         <SheetMusicView
           notes={exercise.notes}
@@ -248,7 +255,7 @@ export default function PianoVisualPlayer({
         />
       </div>
 
-      {/* Clavier Virtuel 2D Compact pour iPad sans scroll (Hauteur ajustée) */}
+      {/* Clavier Virtuel 2D avec Doigtés */}
       <div className="bg-slate-900/90 p-3 rounded-2xl border border-slate-800/80 flex flex-col items-center shadow-xl">
         <div className="w-full flex items-center justify-between mb-1.5 px-2">
           <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-300 flex items-center gap-2">
@@ -285,7 +292,6 @@ export default function PianoVisualPlayer({
                     : ""
                 }`}
               >
-                {/* Badge du numéro de doigté (1 à 5) */}
                 {isActive && (
                   <div
                     className={`absolute bottom-3 left-1/2 -translate-x-1/2 w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-black text-white shadow-lg animate-bounce ${
@@ -295,7 +301,6 @@ export default function PianoVisualPlayer({
                     {activeInfo.finger}
                   </div>
                 )}
-                {/* Indication Note Do (C) */}
                 {k.note.startsWith("C") && !k.isBlack && (
                   <span className="absolute bottom-1 left-1/2 -translate-x-1/2 text-[9px] font-extrabold text-slate-500 uppercase tracking-tighter">
                     {k.note}
@@ -307,9 +312,8 @@ export default function PianoVisualPlayer({
         </div>
       </div>
 
-      {/* Barre de Contrôle Ergonomique & Compacte */}
+      {/* Barre de Contrôle */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3 items-center bg-slate-900/90 p-3 rounded-2xl border border-slate-800/80 shadow-xl backdrop-blur-xl">
-        {/* Play / Pause / Stop / Fin d'exercice */}
         <div className="flex items-center gap-2.5 justify-center md:justify-start">
           <button
             onClick={togglePlay}
@@ -337,7 +341,6 @@ export default function PianoVisualPlayer({
           </button>
         </div>
 
-        {/* Sélecteur de Mains */}
         <div className="flex bg-slate-950/80 p-1 rounded-xl border border-slate-800/90 justify-center shadow-inner">
           {(["left", "both", "right"] as Hand[]).map((h) => (
             <button
@@ -354,7 +357,6 @@ export default function PianoVisualPlayer({
           ))}
         </div>
 
-        {/* Dynamic BPM, Loop, Metronome Controls */}
         <div className="flex items-center gap-2 justify-center md:justify-end">
           <div className="flex items-center gap-1.5 bg-slate-950/60 px-2.5 py-1.5 rounded-xl border border-slate-800">
             <Sliders className="w-3 h-3 text-slate-400" />
