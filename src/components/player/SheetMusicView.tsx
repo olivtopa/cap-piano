@@ -133,8 +133,8 @@ export default function SheetMusicView({
       allSvgElements.forEach((el) => {
         el.setAttribute("fill", PURE_WHITE);
         el.setAttribute("stroke", PURE_WHITE);
-        el.style.fill = PURE_WHITE;
-        el.style.stroke = PURE_WHITE;
+        (el as SVGElement).style.fill = PURE_WHITE;
+        (el as SVGElement).style.stroke = PURE_WHITE;
       });
     }
   }, [notes, timeSignature]);
