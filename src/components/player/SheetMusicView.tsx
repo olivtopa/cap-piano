@@ -165,7 +165,7 @@ export default function SheetMusicView({
             if (currentFill === "#000000" || currentFill === "#000" || currentFill === "black" || !currentFill) {
               child.setAttribute("fill", PURE_WHITE);
             }
-            if (currentStroke === "#000000" || stroke === "#000" || currentStroke === "black" || !currentStroke) {
+            if (currentStroke === "#000000" || currentStroke === "#000" || currentStroke === "black" || !currentStroke) {
               child.setAttribute("stroke", PURE_WHITE);
             }
           });
