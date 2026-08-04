@@ -29,8 +29,8 @@ export default function SheetMusicView({
     const context = renderer.getContext();
 
     const PURE_WHITE = "#ffffff";
-    const GREEN_RIGHT = "#10b981"; // Vert Émeraude Vif
-    const INDIGO_LEFT = "#6366f1"; // Indigo Vif
+    const GREEN_RIGHT = "#10b981"; // Vert Émeraude Vif (Main Droite)
+    const INDIGO_LEFT = "#818cf8"; // Indigo Vif (Main Gauche)
 
     // Portée Main Droite (Clé de Sol)
     const staveTreble = new Stave(35, 10, width - 70);
@@ -62,7 +62,7 @@ export default function SheetMusicView({
     lineRight.setStyle({ strokeStyle: PURE_WHITE, fillStyle: PURE_WHITE });
     lineRight.setContext(context).draw();
 
-    // Construction des StaveNotes avec identifiant unique et filtrage strict par main
+    // Mapping des notes par index et main
     const buildStaveNotes = (noteEvents: NoteEvent[], clef: "treble" | "bass") => {
       const targetHand = clef === "treble" ? "right" : "left";
       const filtered = noteEvents.filter((n) => n.hand === targetHand);
@@ -77,7 +77,7 @@ export default function SheetMusicView({
         return [wholeRest];
       }
 
-      return filtered.map((e, index) => {
+      return filtered.map((e) => {
         const pitch = e.note.slice(0, -1).toLowerCase();
         const octave = e.note.slice(-1);
         let key = `${pitch}/${octave}`;
@@ -90,9 +90,7 @@ export default function SheetMusicView({
           key = `${pitch.replace("#", "")}/${octave}`;
         }
 
-        // Clé unique pour la note active : e.id si présent sinon time + note + hand
-        const noteIdKey = `${e.time}-${e.note}-${e.hand}`;
-        const activeInfo = activeNotes.get(e.note) || activeNotes.get(noteIdKey);
+        const activeInfo = activeNotes.get(e.note);
         const isCurrentlyActive = !!activeInfo && activeInfo.hand === targetHand;
         const activeColor = clef === "treble" ? GREEN_RIGHT : INDIGO_LEFT;
 
@@ -116,7 +114,7 @@ export default function SheetMusicView({
             fillStyle: activeColor,
             strokeStyle: activeColor,
             shadowColor: activeColor,
-            shadowBlur: 20,
+            shadowBlur: 25,
           });
         } else {
           staveNote.setStyle({ fillStyle: PURE_WHITE, strokeStyle: PURE_WHITE });
@@ -148,19 +146,41 @@ export default function SheetMusicView({
     voiceTreble.draw(context, staveTreble);
     voiceBass.draw(context, staveBass);
 
-    // CSS Post-Processing infaillible : Forcer le blanc pur sur ABSOLUMENT TOUS les éléments SVG sauf les notes spécifiquement colorées en émeraude/indigo
+    // Effet de zoom / surbrillance directement injecté dans le SVG DOM VexFlow
     if (containerRef.current) {
-      const allSvgElements = containerRef.current.querySelectorAll("path, line, rect, text, circle");
-      allSvgElements.forEach((el) => {
-        const fill = el.getAttribute("fill");
-        const stroke = el.getAttribute("stroke");
+      // 1. Blanchir la portée et les symboles statiques
+      const staveElements = containerRef.current.querySelectorAll(".vf-stave path, .vf-stave line, .vf-clef path, .vf-timesignature path");
+      staveElements.forEach((p) => {
+        p.setAttribute("fill", PURE_WHITE);
+        p.setAttribute("stroke", PURE_WHITE);
+      });
 
-        const isGreen = fill === GREEN_RIGHT || stroke === GREEN_RIGHT;
-        const isIndigo = fill === INDIGO_LEFT || stroke === INDIGO_LEFT;
+      // 2. Parcourir les têtes de note VexFlow (vf-stavenote)
+      const noteGroups = containerRef.current.querySelectorAll(".vf-stavenote");
+      noteGroups.forEach((group) => {
+        const fill = group.getAttribute("fill");
+        const stroke = group.getAttribute("stroke");
 
-        if (!isGreen && !isIndigo) {
-          el.setAttribute("fill", PURE_WHITE);
-          el.setAttribute("stroke", PURE_WHITE);
+        const isActive = fill === GREEN_RIGHT || fill === INDIGO_LEFT || stroke === GREEN_RIGHT || stroke === INDIGO_LEFT;
+
+        if (isActive) {
+          // Appliquer l'effet de zoom (scale 1.35) et halo néon vif
+          (group as HTMLElement).style.transformOrigin = "center";
+          (group as HTMLElement).style.transform = "scale(1.35)";
+          (group as HTMLElement).style.transition = "transform 0.1s ease-in-out";
+          (group as HTMLElement).style.filter = `drop-shadow(0 0 8px ${fill || stroke || GREEN_RIGHT})`;
+
+          group.querySelectorAll("path, line").forEach((child) => {
+            child.setAttribute("fill", fill || stroke || GREEN_RIGHT);
+            child.setAttribute("stroke", fill || stroke || GREEN_RIGHT);
+            child.setAttribute("stroke-width", "2.5");
+          });
+        } else {
+          (group as HTMLElement).style.transform = "scale(1)";
+          group.querySelectorAll("path, line").forEach((child) => {
+            child.setAttribute("fill", PURE_WHITE);
+            child.setAttribute("stroke", PURE_WHITE);
+          });
         }
       });
     }
