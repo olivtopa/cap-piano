@@ -28,8 +28,9 @@ export default function SheetMusicView({
     renderer.resize(width, height);
     const context = renderer.getContext();
 
-    // Configuration des couleurs en blanc pur
     const PURE_WHITE = "#ffffff";
+    const GREEN_RIGHT = "#10b981"; // Vert Émeraude Vif
+    const INDIGO_LEFT = "#6366f1"; // Indigo Vif
 
     // Portée Main Droite (Clé de Sol)
     const staveTreble = new Stave(35, 10, width - 70);
@@ -45,7 +46,7 @@ export default function SheetMusicView({
     staveBass.addClef("bass").addTimeSignature(`${timeSignature[0]}/${timeSignature[1]}`);
     staveBass.draw();
 
-    // Accolade Grand Staff (Piano Brace) en blanc pur
+    // Accolade Grand Staff (Piano Brace)
     const brace = new StaveConnector(staveTreble, staveBass);
     brace.setType(StaveConnector.type.BRACE);
     brace.setStyle({ strokeStyle: PURE_WHITE, fillStyle: PURE_WHITE });
@@ -89,6 +90,7 @@ export default function SheetMusicView({
         }
 
         const isCurrentlyActive = activeNotes.has(e.note);
+        const activeColor = clef === "treble" ? GREEN_RIGHT : INDIGO_LEFT;
 
         const staveNote = new StaveNote({
           clef: clef,
@@ -99,18 +101,18 @@ export default function SheetMusicView({
         if (hasAccidental) {
           const acc = new Accidental(accSymbol);
           acc.setStyle({
-            fillStyle: isCurrentlyActive ? "#38bdf8" : PURE_WHITE,
-            strokeStyle: isCurrentlyActive ? "#38bdf8" : PURE_WHITE,
+            fillStyle: isCurrentlyActive ? activeColor : PURE_WHITE,
+            strokeStyle: isCurrentlyActive ? activeColor : PURE_WHITE,
           });
           staveNote.addModifier(acc);
         }
 
         if (isCurrentlyActive) {
           staveNote.setStyle({
-            fillStyle: clef === "treble" ? "#10b981" : "#6366f1",
-            strokeStyle: clef === "treble" ? "#10b981" : "#6366f1",
-            shadowColor: clef === "treble" ? "rgba(16, 185, 129, 0.9)" : "rgba(99, 102, 241, 0.9)",
-            shadowBlur: 14,
+            fillStyle: activeColor,
+            strokeStyle: activeColor,
+            shadowColor: activeColor,
+            shadowBlur: 20,
           });
         } else {
           staveNote.setStyle({ fillStyle: PURE_WHITE, strokeStyle: PURE_WHITE });
@@ -142,30 +144,31 @@ export default function SheetMusicView({
     voiceTreble.draw(context, staveTreble);
     voiceBass.draw(context, staveBass);
 
-    // Forcer le blanc pur sur la portée et symboles statiques sans écraser les notes actives
+    // Colorer précisément au niveau DOM SVG toutes les notes actives (tête de note, hampe et crochet)
     if (containerRef.current) {
-      const allSvgNodes = containerRef.current.querySelectorAll("*");
-      allSvgNodes.forEach((node) => {
-        const el = node as HTMLElement;
-        const fill = el.getAttribute("fill");
-        const stroke = el.getAttribute("stroke");
+      // 1. Blanchir les lignes de portée, clés et connecteurs statiques
+      const stavePaths = containerRef.current.querySelectorAll(".vf-stave path, .vf-stave line, .vf-clef path, .vf-timesignature path");
+      stavePaths.forEach((p) => {
+        p.setAttribute("fill", PURE_WHITE);
+        p.setAttribute("stroke", PURE_WHITE);
+      });
 
-        // Si l'élément n'est pas déjà spécifiquement coloré par StaveNote.setStyle (note jouée)
-        const isCustomColor =
-          fill === "#10b981" ||
-          fill === "#6366f1" ||
-          fill === "#38bdf8" ||
-          stroke === "#10b981" ||
-          stroke === "#6366f1" ||
-          stroke === "#38bdf8";
+      // 2. Surbrillance directe des têtes de notes (vf-stavenote)
+      const noteGroups = containerRef.current.querySelectorAll(".vf-stavenote");
+      noteGroups.forEach((group) => {
+        const isNoteActive = group.getAttribute("fill") !== PURE_WHITE && group.getAttribute("fill") !== null;
+        if (!isNoteActive) {
+          group.querySelectorAll("path, line").forEach((child) => {
+            const currentFill = child.getAttribute("fill");
+            const currentStroke = child.getAttribute("stroke");
 
-        if (!isCustomColor) {
-          if (fill === "#000000" || fill === "#000" || fill === "black" || !fill) {
-            el.setAttribute("fill", "#ffffff");
-          }
-          if (stroke === "#000000" || stroke === "#000" || stroke === "black" || !stroke) {
-            el.setAttribute("stroke", "#ffffff");
-          }
+            if (currentFill === "#000000" || currentFill === "#000" || currentFill === "black" || !currentFill) {
+              child.setAttribute("fill", PURE_WHITE);
+            }
+            if (currentStroke === "#000000" || stroke === "#000" || currentStroke === "black" || !currentStroke) {
+              child.setAttribute("stroke", PURE_WHITE);
+            }
+          });
         }
       });
     }
@@ -179,7 +182,7 @@ export default function SheetMusicView({
           Partition Grand Staff (Clé de Sol & Clé de Fa)
         </span>
       </div>
-      <div ref={containerRef} className="w-full flex justify-center min-w-[650px] vexflow-white-fix" />
+      <div ref={containerRef} className="w-full flex justify-center min-w-[650px]" />
     </div>
   );
 }
