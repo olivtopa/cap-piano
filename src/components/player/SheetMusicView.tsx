@@ -6,13 +6,12 @@ import { NoteEvent } from "@/types/exercise";
 
 interface SheetMusicViewProps {
   notes: NoteEvent[];
-  activeNotes: Map<string, { hand: "right" | "left"; finger: number }>;
+  activeNotes?: Map<string, { hand: "right" | "left"; finger: number }>;
   timeSignature?: [number, number];
 }
 
 export default function SheetMusicView({
   notes,
-  activeNotes,
   timeSignature = [4, 4],
 }: SheetMusicViewProps) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -28,9 +27,8 @@ export default function SheetMusicView({
     renderer.resize(width, height);
     const context = renderer.getContext();
 
+    // Blanc pur pour l'intégralité de la partition
     const PURE_WHITE = "#ffffff";
-    const GREEN_RIGHT = "#10b981"; // Vert Émeraude Vif (Main Droite)
-    const INDIGO_LEFT = "#818cf8"; // Indigo Vif (Main Gauche)
 
     // Portée Main Droite (Clé de Sol)
     const staveTreble = new Stave(35, 10, width - 70);
@@ -62,7 +60,7 @@ export default function SheetMusicView({
     lineRight.setStyle({ strokeStyle: PURE_WHITE, fillStyle: PURE_WHITE });
     lineRight.setContext(context).draw();
 
-    // Mapping des notes par index et main
+    // Construction des StaveNotes statiques et propres
     const buildStaveNotes = (noteEvents: NoteEvent[], clef: "treble" | "bass") => {
       const targetHand = clef === "treble" ? "right" : "left";
       const filtered = noteEvents.filter((n) => n.hand === targetHand);
@@ -90,10 +88,6 @@ export default function SheetMusicView({
           key = `${pitch.replace("#", "")}/${octave}`;
         }
 
-        const activeInfo = activeNotes.get(e.note);
-        const isCurrentlyActive = !!activeInfo && activeInfo.hand === targetHand;
-        const activeColor = clef === "treble" ? GREEN_RIGHT : INDIGO_LEFT;
-
         const staveNote = new StaveNote({
           clef: clef,
           keys: [key],
@@ -102,24 +96,11 @@ export default function SheetMusicView({
 
         if (hasAccidental) {
           const acc = new Accidental(accSymbol);
-          acc.setStyle({
-            fillStyle: isCurrentlyActive ? activeColor : PURE_WHITE,
-            strokeStyle: isCurrentlyActive ? activeColor : PURE_WHITE,
-          });
+          acc.setStyle({ fillStyle: PURE_WHITE, strokeStyle: PURE_WHITE });
           staveNote.addModifier(acc);
         }
 
-        if (isCurrentlyActive) {
-          staveNote.setStyle({
-            fillStyle: activeColor,
-            strokeStyle: activeColor,
-            shadowColor: activeColor,
-            shadowBlur: 25,
-          });
-        } else {
-          staveNote.setStyle({ fillStyle: PURE_WHITE, strokeStyle: PURE_WHITE });
-        }
-
+        staveNote.setStyle({ fillStyle: PURE_WHITE, strokeStyle: PURE_WHITE });
         return staveNote;
       });
     };
@@ -146,45 +127,17 @@ export default function SheetMusicView({
     voiceTreble.draw(context, staveTreble);
     voiceBass.draw(context, staveBass);
 
-    // Effet de zoom / surbrillance directement injecté dans le SVG DOM VexFlow
+    // CSS Post-Processing Infaillible : Forcer ABSOLUMENT TOUS les éléments du conteneur SVG en Blanc Pur (#ffffff)
     if (containerRef.current) {
-      // 1. Blanchir la portée et les symboles statiques
-      const staveElements = containerRef.current.querySelectorAll(".vf-stave path, .vf-stave line, .vf-clef path, .vf-timesignature path");
-      staveElements.forEach((p) => {
-        p.setAttribute("fill", PURE_WHITE);
-        p.setAttribute("stroke", PURE_WHITE);
-      });
-
-      // 2. Parcourir les têtes de note VexFlow (vf-stavenote)
-      const noteGroups = containerRef.current.querySelectorAll(".vf-stavenote");
-      noteGroups.forEach((group) => {
-        const fill = group.getAttribute("fill");
-        const stroke = group.getAttribute("stroke");
-
-        const isActive = fill === GREEN_RIGHT || fill === INDIGO_LEFT || stroke === GREEN_RIGHT || stroke === INDIGO_LEFT;
-
-        if (isActive) {
-          // Appliquer l'effet de zoom (scale 1.35) et halo néon vif
-          (group as HTMLElement).style.transformOrigin = "center";
-          (group as HTMLElement).style.transform = "scale(1.35)";
-          (group as HTMLElement).style.transition = "transform 0.1s ease-in-out";
-          (group as HTMLElement).style.filter = `drop-shadow(0 0 8px ${fill || stroke || GREEN_RIGHT})`;
-
-          group.querySelectorAll("path, line").forEach((child) => {
-            child.setAttribute("fill", fill || stroke || GREEN_RIGHT);
-            child.setAttribute("stroke", fill || stroke || GREEN_RIGHT);
-            child.setAttribute("stroke-width", "2.5");
-          });
-        } else {
-          (group as HTMLElement).style.transform = "scale(1)";
-          group.querySelectorAll("path, line").forEach((child) => {
-            child.setAttribute("fill", PURE_WHITE);
-            child.setAttribute("stroke", PURE_WHITE);
-          });
-        }
+      const allSvgElements = containerRef.current.querySelectorAll("path, line, rect, text, circle, polygon");
+      allSvgElements.forEach((el) => {
+        el.setAttribute("fill", PURE_WHITE);
+        el.setAttribute("stroke", PURE_WHITE);
+        el.style.fill = PURE_WHITE;
+        el.style.stroke = PURE_WHITE;
       });
     }
-  }, [notes, activeNotes, timeSignature]);
+  }, [notes, timeSignature]);
 
   return (
     <div className="w-full bg-slate-900/95 border border-slate-800 rounded-3xl p-3 md:p-4 shadow-2xl backdrop-blur-xl flex flex-col items-center justify-center relative">
