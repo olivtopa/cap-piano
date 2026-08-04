@@ -62,7 +62,7 @@ export default function SheetMusicView({
     lineRight.setStyle({ strokeStyle: PURE_WHITE, fillStyle: PURE_WHITE });
     lineRight.setContext(context).draw();
 
-    // Construction des StaveNotes avec marquage précis de la main et de l'état actif
+    // Construction des StaveNotes avec identifiant unique et filtrage strict par main
     const buildStaveNotes = (noteEvents: NoteEvent[], clef: "treble" | "bass") => {
       const targetHand = clef === "treble" ? "right" : "left";
       const filtered = noteEvents.filter((n) => n.hand === targetHand);
@@ -77,7 +77,7 @@ export default function SheetMusicView({
         return [wholeRest];
       }
 
-      return filtered.map((e) => {
+      return filtered.map((e, index) => {
         const pitch = e.note.slice(0, -1).toLowerCase();
         const octave = e.note.slice(-1);
         let key = `${pitch}/${octave}`;
@@ -90,8 +90,9 @@ export default function SheetMusicView({
           key = `${pitch.replace("#", "")}/${octave}`;
         }
 
-        // Vérification stricte : la note doit être active ET correspondre à la bonne main
-        const activeInfo = activeNotes.get(e.note);
+        // Clé unique pour la note active : e.id si présent sinon time + note + hand
+        const noteIdKey = `${e.time}-${e.note}-${e.hand}`;
+        const activeInfo = activeNotes.get(e.note) || activeNotes.get(noteIdKey);
         const isCurrentlyActive = !!activeInfo && activeInfo.hand === targetHand;
         const activeColor = clef === "treble" ? GREEN_RIGHT : INDIGO_LEFT;
 
@@ -147,33 +148,19 @@ export default function SheetMusicView({
     voiceTreble.draw(context, staveTreble);
     voiceBass.draw(context, staveBass);
 
-    // CSS Post-Processing : Blanchir systématiquement tous les éléments statiques SVG (portées, clés, 4/4) sans altérer les notes actives
+    // CSS Post-Processing infaillible : Forcer le blanc pur sur ABSOLUMENT TOUS les éléments SVG sauf les notes spécifiquement colorées en émeraude/indigo
     if (containerRef.current) {
-      // 1. Blanchir les lignes de portée, clés et connecteurs
-      const stavePaths = containerRef.current.querySelectorAll(".vf-stave path, .vf-stave line, .vf-clef path, .vf-timesignature path");
-      stavePaths.forEach((p) => {
-        p.setAttribute("fill", PURE_WHITE);
-        p.setAttribute("stroke", PURE_WHITE);
-      });
+      const allSvgElements = containerRef.current.querySelectorAll("path, line, rect, text, circle");
+      allSvgElements.forEach((el) => {
+        const fill = el.getAttribute("fill");
+        const stroke = el.getAttribute("stroke");
 
-      // 2. Traiter les têtes de note non actives
-      const noteGroups = containerRef.current.querySelectorAll(".vf-stavenote");
-      noteGroups.forEach((group) => {
-        const strokeAttr = group.getAttribute("stroke");
-        const fillAttr = group.getAttribute("fill");
-        const isGroupActive = strokeAttr === GREEN_RIGHT || strokeAttr === INDIGO_LEFT || fillAttr === GREEN_RIGHT || fillAttr === INDIGO_LEFT;
+        const isGreen = fill === GREEN_RIGHT || stroke === GREEN_RIGHT;
+        const isIndigo = fill === INDIGO_LEFT || stroke === INDIGO_LEFT;
 
-        if (!isGroupActive) {
-          group.querySelectorAll("path, line").forEach((child) => {
-            const cFill = child.getAttribute("fill");
-            const cStroke = child.getAttribute("stroke");
-            if (cFill !== GREEN_RIGHT && cFill !== INDIGO_LEFT) {
-              child.setAttribute("fill", PURE_WHITE);
-            }
-            if (cStroke !== GREEN_RIGHT && cStroke !== INDIGO_LEFT) {
-              child.setAttribute("stroke", PURE_WHITE);
-            }
-          });
+        if (!isGreen && !isIndigo) {
+          el.setAttribute("fill", PURE_WHITE);
+          el.setAttribute("stroke", PURE_WHITE);
         }
       });
     }
