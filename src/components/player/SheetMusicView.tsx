@@ -142,7 +142,7 @@ export default function SheetMusicView({
     voiceTreble.draw(context, staveTreble);
     voiceBass.draw(context, staveBass);
 
-    // CSS Inversion pour forcer TOUT le conteneur SVG VexFlow (clés, 4/4, portées, hampes) en blanc pur
+    // Forcer le blanc pur sur la portée et symboles statiques sans écraser les notes actives
     if (containerRef.current) {
       const allSvgNodes = containerRef.current.querySelectorAll("*");
       allSvgNodes.forEach((node) => {
@@ -150,12 +150,22 @@ export default function SheetMusicView({
         const fill = el.getAttribute("fill");
         const stroke = el.getAttribute("stroke");
 
-        // Si l'élément n'est pas une note active colorée (Emerald/Indigo)
-        if (fill !== "#10b981" && fill !== "#6366f1" && fill !== "#38bdf8") {
-          el.setAttribute("fill", "#ffffff");
-        }
-        if (stroke !== "#10b981" && stroke !== "#6366f1" && stroke !== "#38bdf8") {
-          el.setAttribute("stroke", "#ffffff");
+        // Si l'élément n'est pas déjà spécifiquement coloré par StaveNote.setStyle (note jouée)
+        const isCustomColor =
+          fill === "#10b981" ||
+          fill === "#6366f1" ||
+          fill === "#38bdf8" ||
+          stroke === "#10b981" ||
+          stroke === "#6366f1" ||
+          stroke === "#38bdf8";
+
+        if (!isCustomColor) {
+          if (fill === "#000000" || fill === "#000" || fill === "black" || !fill) {
+            el.setAttribute("fill", "#ffffff");
+          }
+          if (stroke === "#000000" || stroke === "#000" || stroke === "black" || !stroke) {
+            el.setAttribute("stroke", "#ffffff");
+          }
         }
       });
     }
