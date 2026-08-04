@@ -1,7 +1,5 @@
 import { ExerciseData } from "@/types/exercise";
 
-export font: void;
-
 export const EXERCISES_DATABASE: ExerciseData[] = [
   {
     id: "ex-1",
