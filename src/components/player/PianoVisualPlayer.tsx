@@ -72,7 +72,6 @@ export default function PianoVisualPlayer() {
     } else if (timeLeftSeconds === 0 && timerActive) {
       setTimerActive(false);
       setShowTimerAlert(true);
-      // Petite alerte sonore Tone.js si possible
       if (synthRef.current) {
         try {
           synthRef.current.triggerAttackRelease(["C5", "E5", "G5"], "2n");
@@ -212,7 +211,6 @@ export default function PianoVisualPlayer() {
     } else {
       Tone.Transport.start();
       setIsPlaying(true);
-      // Démarrer automatiquement le minuteur si ce n'est pas encore fait
       if (!timerActive && timeLeftSeconds > 0) {
         setTimerActive(true);
       }
@@ -248,7 +246,6 @@ export default function PianoVisualPlayer() {
       lastEvaluated: new Date().toISOString(),
     });
 
-    // Passer automatiquement à l'exercice suivant si succès
     if (score === "good" || score === "easy") {
       handleNextExercise();
     }
@@ -291,7 +288,7 @@ export default function PianoVisualPlayer() {
         }}
       />
 
-      {/* En-tête avec Sélecteur d'Exercices & Minuteur de Pratique */}
+      {/* En-tête avec Sélecteur d'Exercices & Minuteur Agrandit */}
       <div className="flex flex-row items-center justify-between pb-3 border-b border-slate-800/80 gap-2">
         <div>
           <div className="flex items-center gap-2 mb-0.5">
@@ -304,31 +301,41 @@ export default function PianoVisualPlayer() {
           </h1>
         </div>
 
-        {/* Contrôle du Minuteur + Navigation Exercices */}
+        {/* Minuteur Agrandit & Navigation Exercices */}
         <div className="flex items-center gap-3">
-          {/* Minuteur de Pratique Réglable */}
-          <div className="flex items-center gap-2 bg-slate-900/90 px-3 py-1.5 rounded-xl border border-slate-800 shadow-sm">
-            <TimerIcon className={`w-4 h-4 ${timerActive ? "text-amber-400 animate-pulse" : "text-slate-400"}`} />
+          {/* Minuteur de Pratique Lisible avec Reset */}
+          <div className="flex items-center gap-2.5 bg-slate-900/90 px-3.5 py-2 rounded-2xl border border-slate-700/80 shadow-md">
+            <TimerIcon className={`w-5 h-5 ${timerActive ? "text-amber-400 animate-pulse" : "text-slate-400"}`} />
+            
             <button
               onClick={toggleTimerActive}
-              className={`text-xs font-mono font-extrabold tracking-wider ${
+              className={`text-sm md:text-base font-mono font-black tracking-wider transition-colors ${
                 timeLeftSeconds <= 60 && timerActive
                   ? "text-rose-400 animate-ping"
                   : timerActive
                   ? "text-amber-400"
-                  : "text-slate-200"
+                  : "text-slate-100"
               }`}
               title="Cliquer pour Démarrer/Mettre en pause le minuteur"
             >
               {formatTime(timeLeftSeconds)}
             </button>
 
-            {/* Choix des durées (5m, 10m, 15m, 20m) */}
+            {/* Bouton Réinitialiser le Minuteur */}
+            <button
+              onClick={resetTimer}
+              className="p-1 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-amber-400 transition-colors"
+              title="Réinitialiser le minuteur"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+            </button>
+
+            {/* Sélecteur de Durée */}
             <select
               value={timerMinutes}
               onChange={(e) => handleTimerDurationChange(Number(e.target.value))}
-              className="bg-slate-950 border border-slate-800 text-[10px] font-bold text-slate-300 rounded-lg px-1.5 py-0.5 cursor-pointer focus:outline-none"
-              title="Réglage de la durée de pratique"
+              className="bg-slate-950 border border-slate-800 text-xs font-bold text-slate-200 rounded-xl px-2 py-1 cursor-pointer focus:outline-none focus:border-amber-500/50"
+              title="Changer la durée de la séance"
             >
               <option value={5}>5 min</option>
               <option value={10}>10 min</option>
@@ -361,7 +368,7 @@ export default function PianoVisualPlayer() {
         </div>
       </div>
 
-      {/* Partition VexFlow 100% Blanc Pur Statique */}
+      {/* Partition VexFlow */}
       <div className="w-full">
         <SheetMusicView
           notes={exercise.notes}
@@ -369,7 +376,7 @@ export default function PianoVisualPlayer() {
         />
       </div>
 
-      {/* Clavier Virtuel 2D avec Doigtés */}
+      {/* Clavier Virtuel 2D */}
       <div className="bg-slate-900/90 p-3 rounded-2xl border border-slate-800/80 flex flex-col items-center shadow-xl">
         <div className="w-full flex items-center justify-between mb-1.5 px-2">
           <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-300 flex items-center gap-2">
@@ -442,7 +449,7 @@ export default function PianoVisualPlayer() {
           <button
             onClick={stopPlay}
             className="p-2.5 rounded-xl bg-slate-800/90 hover:bg-slate-700/90 border border-slate-700/60 text-slate-300 transition-all active:scale-95 shadow-md"
-            title="Réinitialiser"
+            title="Réinitialiser la lecture"
           >
             <RotateCcw className="w-4 h-4" />
           </button>
