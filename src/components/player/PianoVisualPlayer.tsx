@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import * as Tone from "tone";
-import { Play, Pause, RotateCcw, Music, Sparkles, Sliders, ChevronLeft, ChevronRight, BookOpen } from "lucide-react";
+import { Play, Pause, RotateCcw, Music, Sparkles, Sliders, ChevronLeft, ChevronRight, BookOpen, Timer as TimerIcon, Bell } from "lucide-react";
 import dynamic from "next/dynamic";
 import { ExerciseData, Hand, EvaluationScore, NoteEvent } from "@/types/exercise";
 import SelfEvaluationModal from "./SelfEvaluationModal";
@@ -43,6 +43,12 @@ export default function PianoVisualPlayer() {
   const [metronomeEnabled, setMetronomeEnabled] = useState(true);
   const [showEvaluation, setShowEvaluation] = useState(false);
 
+  // --- Gestion du Minuteur de Séance d'Apprentissage ---
+  const [timerMinutes, setTimerMinutes] = useState<number>(15); // Durée réglable (default 15 min)
+  const [timeLeftSeconds, setTimeLeftSeconds] = useState<number>(15 * 60);
+  const [timerActive, setTimerActive] = useState<boolean>(false);
+  const [showTimerAlert, setShowTimerAlert] = useState<boolean>(false);
+
   const [activeNotes, setActiveNotes] = useState<
     Map<string, { hand: "right" | "left"; finger: number }>
   >(new Map());
@@ -55,6 +61,55 @@ export default function PianoVisualPlayer() {
   useEffect(() => {
     setBpm(exercise.bpm);
   }, [currentExerciseIndex, exercise.bpm]);
+
+  // Décompte du Minuteur
+  useEffect(() => {
+    let interval: NodeJS.Timeout | null = null;
+    if (timerActive && timeLeftSeconds > 0) {
+      interval = setInterval(() => {
+        setTimeLeftSeconds((prev) => prev - 1);
+      }, 1000);
+    } else if (timeLeftSeconds === 0 && timerActive) {
+      setTimerActive(false);
+      setShowTimerAlert(true);
+      // Petite alerte sonore Tone.js si possible
+      if (synthRef.current) {
+        try {
+          synthRef.current.triggerAttackRelease(["C5", "E5", "G5"], "2n");
+        } catch (e) {}
+      }
+    }
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [timerActive, timeLeftSeconds]);
+
+  // Changer la durée réglée du minuteur
+  const handleTimerDurationChange = (minutes: number) => {
+    setTimerMinutes(minutes);
+    setTimeLeftSeconds(minutes * 60);
+    setTimerActive(false);
+    setShowTimerAlert(false);
+  };
+
+  const toggleTimerActive = () => {
+    if (timeLeftSeconds === 0) {
+      setTimeLeftSeconds(timerMinutes * 60);
+    }
+    setTimerActive(!timerActive);
+  };
+
+  const resetTimer = () => {
+    setTimerActive(false);
+    setTimeLeftSeconds(timerMinutes * 60);
+    setShowTimerAlert(false);
+  };
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+  };
 
   useEffect(() => {
     const synth = new Tone.PolySynth(Tone.Synth, {
@@ -157,6 +212,10 @@ export default function PianoVisualPlayer() {
     } else {
       Tone.Transport.start();
       setIsPlaying(true);
+      // Démarrer automatiquement le minuteur si ce n'est pas encore fait
+      if (!timerActive && timeLeftSeconds > 0) {
+        setTimerActive(true);
+      }
     }
   };
 
@@ -201,6 +260,27 @@ export default function PianoVisualPlayer() {
       <div className="absolute -top-32 -left-32 w-80 h-80 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute -bottom-32 -right-32 w-80 h-80 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
 
+      {/* Modal Fin de Temps de Séance */}
+      {showTimerAlert && (
+        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in">
+          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 max-w-md w-full text-center flex flex-col items-center shadow-2xl">
+            <div className="w-14 h-14 rounded-full bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 mb-3 animate-bounce">
+              <Bell className="w-7 h-7" />
+            </div>
+            <h3 className="text-xl font-bold text-white mb-1">Séance d'apprentissage terminée !</h3>
+            <p className="text-slate-400 text-xs mb-5">
+              Bravo ! Vous avez atteint votre objectif de pratique ({timerMinutes} min). Prenez une pause ou poursuivez à votre rythme.
+            </p>
+            <button
+              onClick={resetTimer}
+              className="px-6 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs shadow-lg transition-all"
+            >
+              Compris !
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Modal d'Auto-Évaluation */}
       <SelfEvaluationModal
         isOpen={showEvaluation}
@@ -211,8 +291,8 @@ export default function PianoVisualPlayer() {
         }}
       />
 
-      {/* En-tête avec Sélecteur d'Exercices */}
-      <div className="flex flex-row items-center justify-between pb-3 border-b border-slate-800/80">
+      {/* En-tête avec Sélecteur d'Exercices & Minuteur de Pratique */}
+      <div className="flex flex-row items-center justify-between pb-3 border-b border-slate-800/80 gap-2">
         <div>
           <div className="flex items-center gap-2 mb-0.5">
             <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center gap-1">
@@ -224,33 +304,67 @@ export default function PianoVisualPlayer() {
           </h1>
         </div>
 
-        {/* Boutons Suivant / Précédent */}
-        <div className="flex items-center gap-2">
-          <button
-            onClick={handlePrevExercise}
-            className="p-2 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-slate-800 text-slate-300 transition-all active:scale-95"
-            title="Exercice Précédent"
-          >
-            <ChevronLeft className="w-5 h-5" />
-          </button>
-          <span className="text-xs font-bold text-slate-400 px-1">
-            {currentExerciseIndex + 1}/{EXERCISES_DATABASE.length}
-          </span>
-          <button
-            onClick={handleNextExercise}
-            className="p-2 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-slate-800 text-emerald-400 transition-all active:scale-95 flex items-center gap-1 font-bold text-xs"
-            title="Exercice Suivant"
-          >
-            <ChevronRight className="w-5 h-5" />
-          </button>
+        {/* Contrôle du Minuteur + Navigation Exercices */}
+        <div className="flex items-center gap-3">
+          {/* Minuteur de Pratique Réglable */}
+          <div className="flex items-center gap-2 bg-slate-900/90 px-3 py-1.5 rounded-xl border border-slate-800 shadow-sm">
+            <TimerIcon className={`w-4 h-4 ${timerActive ? "text-amber-400 animate-pulse" : "text-slate-400"}`} />
+            <button
+              onClick={toggleTimerActive}
+              className={`text-xs font-mono font-extrabold tracking-wider ${
+                timeLeftSeconds <= 60 && timerActive
+                  ? "text-rose-400 animate-ping"
+                  : timerActive
+                  ? "text-amber-400"
+                  : "text-slate-200"
+              }`}
+              title="Cliquer pour Démarrer/Mettre en pause le minuteur"
+            >
+              {formatTime(timeLeftSeconds)}
+            </button>
+
+            {/* Choix des durées (5m, 10m, 15m, 20m) */}
+            <select
+              value={timerMinutes}
+              onChange={(e) => handleTimerDurationChange(Number(e.target.value))}
+              className="bg-slate-950 border border-slate-800 text-[10px] font-bold text-slate-300 rounded-lg px-1.5 py-0.5 cursor-pointer focus:outline-none"
+              title="Réglage de la durée de pratique"
+            >
+              <option value={5}>5 min</option>
+              <option value={10}>10 min</option>
+              <option value={15}>15 min</option>
+              <option value={20}>20 min</option>
+              <option value={30}>30 min</option>
+            </select>
+          </div>
+
+          {/* Navigation Exercices */}
+          <div className="flex items-center gap-1.5">
+            <button
+              onClick={handlePrevExercise}
+              className="p-2 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-slate-800 text-slate-300 transition-all active:scale-95"
+              title="Exercice Précédent"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+            <span className="text-xs font-bold text-slate-400 px-0.5">
+              {currentExerciseIndex + 1}/{EXERCISES_DATABASE.length}
+            </span>
+            <button
+              onClick={handleNextExercise}
+              className="p-2 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-slate-800 text-emerald-400 transition-all active:scale-95 flex items-center gap-1 font-bold text-xs"
+              title="Exercice Suivant"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* Partition VexFlow */}
+      {/* Partition VexFlow 100% Blanc Pur Statique */}
       <div className="w-full">
         <SheetMusicView
           notes={exercise.notes}
-          activeNotes={activeNotes}
           timeSignature={exercise.timeSignature}
         />
       </div>
