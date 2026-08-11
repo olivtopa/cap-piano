@@ -72,6 +72,9 @@ export default function PianoVisualPlayer() {
     } else if (timeLeftSeconds === 0 && timerActive) {
       setTimerActive(false);
       setShowTimerAlert(true);
+      // Arrêter automatiquement la musique et la lecture audio
+      stopPlay();
+
       if (synthRef.current) {
         try {
           synthRef.current.triggerAttackRelease(["C5", "E5", "G5"], "2n");
@@ -311,7 +314,7 @@ export default function PianoVisualPlayer() {
               onClick={toggleTimerActive}
               className={`text-sm md:text-base font-mono font-black tracking-wider transition-colors ${
                 timeLeftSeconds <= 60 && timerActive
-                  ? "text-rose-400 animate-ping"
+                  ? "text-rose-400 font-bold"
                   : timerActive
                   ? "text-amber-400"
                   : "text-slate-100"
