@@ -531,13 +531,26 @@ export default function PianoVisualPlayer() {
             <span className="text-[10px] font-bold text-slate-400">BPM</span>
             <input
               type="range"
-              min="40"
-              max="160"
+              min="30"
+              max="240"
               value={bpm}
-              onChange={(e) => setBpm(Number(e.target.value))}
-              className="w-16 accent-emerald-500 cursor-pointer"
+              onChange={(e) => setBpm(Math.min(240, Math.max(30, Number(e.target.value))))}
+              className="w-14 md:w-16 accent-emerald-500 cursor-pointer"
             />
-            <span className="text-xs font-extrabold text-emerald-400 w-6 text-right">{bpm}</span>
+            <input
+              type="number"
+              min="30"
+              max="240"
+              value={bpm}
+              onChange={(e) => {
+                const val = Number(e.target.value);
+                if (!isNaN(val)) {
+                  setBpm(Math.min(240, Math.max(30, val)));
+                }
+              }}
+              className="w-12 bg-slate-900 border border-slate-700/80 rounded-lg text-xs font-extrabold text-emerald-400 text-center focus:outline-none focus:border-emerald-400 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+              title="Saisir la vitesse en BPM (30 - 240)"
+            />
           </div>
 
           <button
