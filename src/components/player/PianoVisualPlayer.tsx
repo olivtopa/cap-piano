@@ -439,7 +439,7 @@ export default function PianoVisualPlayer() {
           </div>
         </div>
 
-        <div className="relative flex justify-center h-36 md:h-40 w-full overflow-x-auto pb-1 pt-1 scrollbar-none">
+        <div className="relative flex justify-center h-40 md:h-44 w-full overflow-x-auto pb-1 pt-1 scrollbar-none">
           {PIANO_KEYS.map((k) => {
             const activeInfo = activeNotes.get(k.note);
             const isActive = !!activeInfo;
@@ -450,8 +450,8 @@ export default function PianoVisualPlayer() {
                 key={k.note}
                 className={`relative flex-shrink-0 transition-all duration-100 ${
                   k.isBlack
-                    ? "w-5 md:w-6 h-24 -mx-2.5 md:-mx-3 z-10 bg-slate-900 border border-slate-700/80 rounded-b-lg shadow-xl"
-                    : "w-7 md:w-8.5 h-36 bg-gradient-to-b from-slate-100 to-slate-200 border border-slate-300 rounded-b-xl shadow-md"
+                    ? "w-6 md:w-7 h-26 md:h-28 -mx-3 md:-mx-3.5 z-10 bg-slate-900 border border-slate-700/80 rounded-b-lg shadow-xl"
+                    : "w-8 md:w-10 h-40 md:h-44 bg-gradient-to-b from-slate-100 to-slate-200 border border-slate-300 rounded-b-xl shadow-md"
                 } ${
                   isActive
                     ? isRightHand
