@@ -15,6 +15,15 @@ const SheetMusicView = dynamic(() => import("./SheetMusicView"), {
 });
 
 const PIANO_KEYS = [
+  // Octave 2
+  { note: "C2", isBlack: false }, { note: "C#2", isBlack: true },
+  { note: "D2", isBlack: false }, { note: "D#2", isBlack: true },
+  { note: "E2", isBlack: false },
+  { note: "F2", isBlack: false }, { note: "F#2", isBlack: true },
+  { note: "G2", isBlack: false }, { note: "G#2", isBlack: true },
+  { note: "A2", isBlack: false }, { note: "A#2", isBlack: true },
+  { note: "B2", isBlack: false },
+  // Octave 3
   { note: "C3", isBlack: false }, { note: "C#3", isBlack: true },
   { note: "D3", isBlack: false }, { note: "D#3", isBlack: true },
   { note: "E3", isBlack: false },
@@ -22,6 +31,7 @@ const PIANO_KEYS = [
   { note: "G3", isBlack: false }, { note: "G#3", isBlack: true },
   { note: "A3", isBlack: false }, { note: "A#3", isBlack: true },
   { note: "B3", isBlack: false },
+  // Octave 4
   { note: "C4", isBlack: false }, { note: "C#4", isBlack: true },
   { note: "D4", isBlack: false }, { note: "D#4", isBlack: true },
   { note: "E4", isBlack: false },
@@ -29,7 +39,16 @@ const PIANO_KEYS = [
   { note: "G4", isBlack: false }, { note: "G#4", isBlack: true },
   { note: "A4", isBlack: false }, { note: "A#4", isBlack: true },
   { note: "B4", isBlack: false },
-  { note: "C5", isBlack: false },
+  // Octave 5
+  { note: "C5", isBlack: false }, { note: "C#5", isBlack: true },
+  { note: "D5", isBlack: false }, { note: "D#5", isBlack: true },
+  { note: "E5", isBlack: false },
+  { note: "F5", isBlack: false }, { note: "F#5", isBlack: true },
+  { note: "G5", isBlack: false }, { note: "G#5", isBlack: true },
+  { note: "A5", isBlack: false }, { note: "A#5", isBlack: true },
+  { note: "B5", isBlack: false },
+  // Octave 6 (C6)
+  { note: "C6", isBlack: false },
 ];
 
 export default function PianoVisualPlayer() {
@@ -280,7 +299,7 @@ export default function PianoVisualPlayer() {
   };
 
   return (
-    <div className="flex flex-col gap-3 md:gap-4 bg-slate-950 text-slate-100 p-4 md:p-6 rounded-[2rem] shadow-2xl border border-slate-800/80 max-w-5xl mx-auto select-none backdrop-blur-xl relative overflow-hidden max-h-[96vh] justify-between">
+    <div className="flex flex-col gap-3 md:gap-4 bg-slate-950 text-slate-100 p-3 md:p-6 rounded-[2rem] shadow-2xl border border-slate-800/80 max-w-7xl mx-auto select-none backdrop-blur-xl relative overflow-hidden max-h-[96vh] justify-between">
       {/* Halo de lumière */}
       <div className="absolute -top-32 -left-32 w-80 h-80 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute -bottom-32 -right-32 w-80 h-80 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
@@ -420,7 +439,7 @@ export default function PianoVisualPlayer() {
           </div>
         </div>
 
-        <div className="relative flex justify-center h-36 md:h-40 w-full max-w-4xl overflow-x-auto pb-1 pt-1 scrollbar-none">
+        <div className="relative flex justify-center h-36 md:h-40 w-full overflow-x-auto pb-1 pt-1 scrollbar-none">
           {PIANO_KEYS.map((k) => {
             const activeInfo = activeNotes.get(k.note);
             const isActive = !!activeInfo;
@@ -431,8 +450,8 @@ export default function PianoVisualPlayer() {
                 key={k.note}
                 className={`relative flex-shrink-0 transition-all duration-100 ${
                   k.isBlack
-                    ? "w-7 h-24 -mx-3.5 z-10 bg-slate-900 border border-slate-700/80 rounded-b-lg shadow-xl"
-                    : "w-9 md:w-10 h-36 bg-gradient-to-b from-slate-100 to-slate-200 border border-slate-300 rounded-b-xl shadow-md"
+                    ? "w-5 md:w-6 h-24 -mx-2.5 md:-mx-3 z-10 bg-slate-900 border border-slate-700/80 rounded-b-lg shadow-xl"
+                    : "w-7 md:w-8.5 h-36 bg-gradient-to-b from-slate-100 to-slate-200 border border-slate-300 rounded-b-xl shadow-md"
                 } ${
                   isActive
                     ? isRightHand
