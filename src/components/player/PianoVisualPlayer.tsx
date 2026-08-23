@@ -62,6 +62,31 @@ export default function PianoVisualPlayer() {
     setBpm(exercise.bpm);
   }, [currentExerciseIndex, exercise.bpm]);
 
+  // Récupérer automatiquement le niveau le plus haut atteint/évalué au démarrage
+  useEffect(() => {
+    async function loadHighestLevel() {
+      try {
+        const { getAllProgress } = await import("@/lib/db/indexedDB");
+        const allProgress = await getAllProgress();
+        if (allProgress && allProgress.length > 0) {
+          // Trouver les index d'exercices enregistrés dans IndexedDB
+          const evaluatedIndices = allProgress
+            .map((p) => EXERCISES_DATABASE.findIndex((e) => e.id === p.exerciseId))
+            .filter((idx) => idx !== -1);
+
+          if (evaluatedIndices.length > 0) {
+            const maxIndex = Math.max(...evaluatedIndices);
+            // Si le dernier niveau a été validé ou travaillé, positionner sur maxIndex
+            setCurrentExerciseIndex(maxIndex);
+          }
+        }
+      } catch (err) {
+        console.error("Erreur chargement niveau le plus haut:", err);
+      }
+    }
+    loadHighestLevel();
+  }, []);
+
   // Décompte du Minuteur
   useEffect(() => {
     let interval: NodeJS.Timeout | null = null;
@@ -296,7 +321,7 @@ export default function PianoVisualPlayer() {
         <div>
           <div className="flex items-center gap-2 mb-0.5">
             <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center gap-1">
-              <BookOpen className="w-3 h-3" /> Exercice {currentExerciseIndex + 1} / {EXERCISES_DATABASE.length}
+              <BookOpen className="w-3 h-3" /> Leçon {currentExerciseIndex + 1} / {EXERCISES_DATABASE.length}
             </span>
           </div>
           <h1 className="text-xl md:text-2xl font-extrabold text-white tracking-tight">
