@@ -57,6 +57,7 @@ export default function PianoVisualPlayer() {
 
   const [isPlaying, setIsPlaying] = useState(false);
   const [bpm, setBpm] = useState(exercise.bpm);
+  const [bpmInput, setBpmInput] = useState<string>(exercise.bpm.toString());
   const [selectedHand, setSelectedHand] = useState<Hand>("both");
   const [isLooping, setIsLooping] = useState(true);
   const [metronomeEnabled, setMetronomeEnabled] = useState(true);
@@ -79,6 +80,7 @@ export default function PianoVisualPlayer() {
   // Mettre à jour le BPM si on change d'exercice
   useEffect(() => {
     setBpm(exercise.bpm);
+    setBpmInput(exercise.bpm.toString());
   }, [currentExerciseIndex, exercise.bpm]);
 
   // Récupérer automatiquement le niveau le plus haut atteint/évalué au démarrage
@@ -534,21 +536,45 @@ export default function PianoVisualPlayer() {
               min="30"
               max="240"
               value={bpm}
-              onChange={(e) => setBpm(Math.min(240, Math.max(30, Number(e.target.value))))}
+              onChange={(e) => {
+                const val = Number(e.target.value);
+                setBpm(val);
+                setBpmInput(val.toString());
+              }}
               className="w-14 md:w-16 accent-emerald-500 cursor-pointer"
             />
             <input
-              type="number"
-              min="30"
-              max="240"
-              value={bpm}
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
+              value={bpmInput}
               onChange={(e) => {
-                const val = Number(e.target.value);
-                if (!isNaN(val)) {
-                  setBpm(Math.min(240, Math.max(30, val)));
+                const raw = e.target.value;
+                // Autoriser uniquement les chiffres ou le champ vide
+                if (/^\d*$/.test(raw)) {
+                  setBpmInput(raw);
+                  if (raw !== "") {
+                    const num = parseInt(raw, 10);
+                    if (!isNaN(num) && num >= 10 && num <= 300) {
+                      setBpm(num);
+                    }
+                  }
                 }
               }}
-              className="w-12 bg-slate-900 border border-slate-700/80 rounded-lg text-xs font-extrabold text-emerald-400 text-center focus:outline-none focus:border-emerald-400 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+              onBlur={() => {
+                const num = parseInt(bpmInput, 10);
+                if (isNaN(num) || num < 30) {
+                  setBpm(30);
+                  setBpmInput("30");
+                } else if (num > 240) {
+                  setBpm(240);
+                  setBpmInput("240");
+                } else {
+                  setBpm(num);
+                  setBpmInput(num.toString());
+                }
+              }}
+              className="w-12 bg-slate-900 border border-slate-700/80 rounded-lg text-xs font-extrabold text-emerald-400 text-center focus:outline-none focus:border-emerald-400 select-all"
               title="Saisir la vitesse en BPM (30 - 240)"
             />
           </div>
