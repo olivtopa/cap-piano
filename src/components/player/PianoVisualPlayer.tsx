@@ -83,6 +83,77 @@ export default function PianoVisualPlayer() {
     setBpmInput(exercise.bpm.toString());
   }, [currentExerciseIndex, exercise.bpm]);
 
+  // --- Adaptation dynamique du nombre de touches à la largeur sans réduire leur taille ---
+  const keyboardContainerRef = useRef<HTMLDivElement>(null);
+  const [visibleKeys, setVisibleKeys] = useState(PIANO_KEYS);
+
+  useEffect(() => {
+    const updateVisibleKeys = () => {
+      if (!keyboardContainerRef.current) return;
+      const containerWidth = keyboardContainerRef.current.clientWidth;
+      if (containerWidth <= 0) return;
+
+      // Largeur physique fixe d'une touche blanche (environ 36px à 40px selon écran)
+      const whiteKeyWidth = window.innerWidth >= 768 ? 40 : 34;
+      // Nombre maximal de touches blanches pouvant entrer dans la largeur disponible
+      const maxWhiteKeys = Math.max(7, Math.floor((containerWidth - 20) / whiteKeyWidth));
+
+      // Indice central autour du Do4 (Middle C) dans PIANO_KEYS (index 18 pour C4)
+      const centerIndex = PIANO_KEYS.findIndex((k) => k.note === "C4");
+
+      // On recherche une tranche de PIANO_KEYS centrée sur C4 qui commence et se termine par une touche blanche
+      let bestSlice = PIANO_KEYS;
+      let left = Math.max(0, centerIndex - Math.floor(maxWhiteKeys * 0.8));
+      let right = Math.min(PIANO_KEYS.length, centerIndex + Math.ceil(maxWhiteKeys * 0.8));
+
+      // Ajuster pour commencer sur une touche blanche
+      while (left > 0 && PIANO_KEYS[left].isBlack) {
+        left--;
+      }
+      // Compter les touches blanches
+      let slice = PIANO_KEYS.slice(left, right);
+      let whiteCount = slice.filter((k) => !k.isBlack).length;
+
+      // Si trop grand, réduire par les extrémités
+      while (whiteCount > maxWhiteKeys && (left < centerIndex || right > centerIndex)) {
+        if (right - centerIndex >= centerIndex - left && right > centerIndex + 1) {
+          right--;
+          while (right > centerIndex && PIANO_KEYS[right - 1].isBlack) {
+            right--;
+          }
+        } else if (left < centerIndex - 1) {
+          left++;
+          while (left < centerIndex && PIANO_KEYS[left].isBlack) {
+            left++;
+          }
+        } else {
+          break;
+        }
+        slice = PIANO_KEYS.slice(left, right);
+        whiteCount = slice.filter((k) => !k.isBlack).length;
+      }
+
+      setVisibleKeys(slice);
+    };
+
+    updateVisibleKeys();
+
+    const resizeObserver = new ResizeObserver(() => {
+      updateVisibleKeys();
+    });
+
+    if (keyboardContainerRef.current) {
+      resizeObserver.observe(keyboardContainerRef.current);
+    }
+
+    window.addEventListener("resize", updateVisibleKeys);
+
+    return () => {
+      resizeObserver.disconnect();
+      window.removeEventListener("resize", updateVisibleKeys);
+    };
+  }, []);
+
   // Récupérer automatiquement le niveau le plus haut atteint/évalué au démarrage
   useEffect(() => {
     async function loadHighestLevel() {
@@ -441,8 +512,11 @@ export default function PianoVisualPlayer() {
           </div>
         </div>
 
-        <div className="relative flex justify-center h-40 md:h-44 w-full overflow-x-auto pb-1 pt-1 scrollbar-none">
-          {PIANO_KEYS.map((k) => {
+        <div
+          ref={keyboardContainerRef}
+          className="relative flex justify-center h-40 md:h-44 w-full overflow-hidden pb-1 pt-1"
+        >
+          {visibleKeys.map((k) => {
             const activeInfo = activeNotes.get(k.note);
             const isActive = !!activeInfo;
             const isRightHand = activeInfo?.hand === "right";
