@@ -2,20 +2,24 @@
 
 import React from "react";
 import { CURRICULUM_DATA } from "@/data/curriculumData";
-import { CurriculumProgress, Lesson } from "@/types/curriculum";
-import { CheckCircle2, Lock, Unlock, BookOpen, Sparkles, Trophy, ChevronRight, RotateCcw } from "lucide-react";
+import { CurriculumProgress } from "@/types/curriculum";
+import { CheckCircle2, Lock, Unlock, BookOpen, Trophy, RotateCcw, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { resetCurriculumProgress } from "@/lib/store/progressStore";
 
 export interface CurriculumSidebarProps {
   currentLessonId: string;
   onSelectLesson: (lessonId: string) => void;
   progress: CurriculumProgress;
+  isCollapsed?: boolean;
+  onToggleCollapse?: () => void;
 }
 
 export default function CurriculumSidebar({
   currentLessonId,
   onSelectLesson,
   progress,
+  isCollapsed = false,
+  onToggleCollapse,
 }: CurriculumSidebarProps) {
   const totalLessons = CURRICULUM_DATA.reduce((acc, m) => acc + m.lessons.length, 0);
   const completedCount = Object.keys(progress.completedLessons).length;
@@ -26,6 +30,26 @@ export default function CurriculumSidebar({
       resetCurriculumProgress();
     }
   };
+
+  if (isCollapsed) {
+    return (
+      <div className="flex flex-col items-center gap-3">
+        <button
+          onClick={onToggleCollapse}
+          className="p-3 rounded-2xl bg-slate-900 border border-slate-800 text-sky-400 hover:bg-slate-800 shadow-xl transition flex flex-col items-center gap-2"
+          title="Afficher le sommaire du parcours"
+        >
+          <PanelLeftOpen className="w-5 h-5" />
+          <span className="text-[10px] font-bold uppercase tracking-wider [writing-mode:vertical-lr] rotate-180 py-1 text-slate-300">
+            Sommaire
+          </span>
+          <span className="text-[10px] font-mono font-bold text-sky-400 bg-sky-500/20 px-1.5 py-0.5 rounded-full">
+            {progressPercent}%
+          </span>
+        </button>
+      </div>
+    );
+  }
 
   return (
     <aside className="w-full lg:w-80 flex-shrink-0 bg-slate-900/90 border border-slate-800 rounded-3xl p-4 sm:p-5 flex flex-col justify-between shadow-xl space-y-6">
@@ -42,13 +66,25 @@ export default function CurriculumSidebar({
             </div>
           </div>
 
-          <button
-            onClick={handleReset}
-            title="Réinitialiser la progression"
-            className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-slate-200 transition"
-          >
-            <RotateCcw className="w-3.5 h-3.5" />
-          </button>
+          <div className="flex items-center gap-1">
+            <button
+              onClick={handleReset}
+              title="Réinitialiser la progression"
+              className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-slate-200 transition"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+            </button>
+
+            {onToggleCollapse && (
+              <button
+                onClick={onToggleCollapse}
+                title="Masquer le sommaire (élargir la vue)"
+                className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-slate-200 transition"
+              >
+                <PanelLeftClose className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Global Progress Bar */}

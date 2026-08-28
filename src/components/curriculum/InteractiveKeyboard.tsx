@@ -82,10 +82,11 @@ export default function InteractiveKeyboard({
       const width = containerRef.current.clientWidth;
       if (width <= 0) return;
 
-      // On tablet (iPad 10" ~768px-820px) or desktop, key width is around 38-46px.
-      // On small mobile, around 30-34px.
-      const targetKeyWidth = width < 500 ? 32 : width < 900 ? 40 : 46;
-      const whiteKeys = Math.max(8, Math.floor((width - 32) / targetKeyWidth));
+      // On mobile (<500px): ~28px -> 14-17 white keys (2+ octaves)
+      // On tablet / iPad 10" (500-900px): ~32px -> 21-28 white keys (3 to 4 octaves)
+      // On desktop (>900px): fits all 29 white keys (4 octaves C2 to C6)
+      const targetKeyWidth = width < 500 ? 28 : width < 850 ? 32 : 36;
+      const whiteKeys = Math.min(29, Math.max(10, Math.floor((width - 24) / targetKeyWidth)));
       setVisibleWhiteKeyCount(whiteKeys);
     };
 

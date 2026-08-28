@@ -6,11 +6,12 @@ import CurriculumSidebar from "@/components/curriculum/CurriculumSidebar";
 import LessonView from "@/components/curriculum/LessonView";
 import { CURRICULUM_DATA } from "@/data/curriculumData";
 import { useCurriculumProgress } from "@/lib/store/progressStore";
-import { GraduationCap, Music, Sparkles, Layers, BookOpen } from "lucide-react";
+import { GraduationCap, Music, Layers, PanelLeftOpen, PanelLeftClose } from "lucide-react";
 
 export default function Home() {
   const [appMode, setAppMode] = useState<"curriculum" | "free-play">("curriculum");
   const [currentLessonId, setCurrentLessonId] = useState<string>("lesson-1-1");
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(false);
   const progress = useCurriculumProgress();
 
   // Find current lesson object
@@ -26,7 +27,7 @@ export default function Home() {
     <main className="min-h-screen bg-slate-950 text-slate-100 flex flex-col">
       {/* Top Header Navigation */}
       <header className="sticky top-0 z-30 bg-slate-950/80 backdrop-blur-md border-b border-slate-800/80 px-4 py-3">
-        <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4">
+        <div className="max-w-[1440px] mx-auto flex flex-wrap items-center justify-between gap-4">
           {/* Logo & Title */}
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-sky-500 via-indigo-500 to-teal-400 p-0.5 shadow-lg shadow-sky-500/20">
@@ -77,19 +78,23 @@ export default function Home() {
       </header>
 
       {/* Main Content Area */}
-      <div className="flex-1 max-w-7xl w-full mx-auto p-3 sm:p-5 md:p-6">
+      <div className="flex-1 max-w-[1440px] w-full mx-auto p-3 sm:p-5 md:p-6">
         {appMode === "curriculum" ? (
-          <div className="flex flex-col lg:flex-row gap-6 items-start">
+          <div className="flex flex-col lg:flex-row gap-5 items-start">
             <CurriculumSidebar
               currentLessonId={currentLessonId}
               onSelectLesson={(id) => setCurrentLessonId(id)}
               progress={progress}
+              isCollapsed={isSidebarCollapsed}
+              onToggleCollapse={() => setIsSidebarCollapsed((prev) => !prev)}
             />
 
             <div className="flex-1 w-full min-w-0">
               <LessonView
                 lesson={currentLesson}
                 onNavigateLesson={(id) => setCurrentLessonId(id)}
+                isSidebarCollapsed={isSidebarCollapsed}
+                onToggleSidebar={() => setIsSidebarCollapsed((prev) => !prev)}
               />
             </div>
           </div>

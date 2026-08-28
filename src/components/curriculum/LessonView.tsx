@@ -7,14 +7,21 @@ import PracticeCoach from "./PracticeCoach";
 import LessonEvaluator from "./LessonEvaluator";
 import { completeLessonInStore } from "@/lib/store/progressStore";
 import { audioEngine } from "@/lib/audio/audioEngine";
-import { BookOpen, Music, CheckCircle2, Play, Pause, RotateCcw, Sparkles, ChevronRight, Layers } from "lucide-react";
+import { BookOpen, Music, CheckCircle2, Play, Pause, Sparkles, ChevronRight, Maximize2, Minimize2 } from "lucide-react";
 
 export interface LessonViewProps {
   lesson: Lesson;
   onNavigateLesson: (lessonId: string) => void;
+  isSidebarCollapsed?: boolean;
+  onToggleSidebar?: () => void;
 }
 
-export default function LessonView({ lesson, onNavigateLesson }: LessonViewProps) {
+export default function LessonView({
+  lesson,
+  onNavigateLesson,
+  isSidebarCollapsed,
+  onToggleSidebar,
+}: LessonViewProps) {
   const [activeTab, setActiveTab] = useState<"theory" | "practice" | "eval">("theory");
 
   // Demonstration playback state
@@ -70,16 +77,28 @@ export default function LessonView({ lesson, onNavigateLesson }: LessonViewProps
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 w-full">
       {/* Lesson Header */}
       <div className="bg-slate-900/90 border border-slate-800 rounded-3xl p-5 sm:p-7 shadow-xl">
         <div className="flex flex-wrap items-center justify-between gap-3 mb-2">
-          <span className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-sky-500/10 text-sky-400 border border-sky-500/20">
-            {lesson.category}
-          </span>
-          <span className="text-xs text-slate-400 font-mono">
-            {lesson.id.toUpperCase()}
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-sky-500/10 text-sky-400 border border-sky-500/20">
+              {lesson.category}
+            </span>
+            <span className="text-xs text-slate-400 font-mono">
+              {lesson.id.toUpperCase()}
+            </span>
+          </div>
+
+          {onToggleSidebar && (
+            <button
+              onClick={onToggleSidebar}
+              className="text-xs px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition flex items-center gap-1.5 border border-slate-700"
+            >
+              {isSidebarCollapsed ? <Maximize2 className="w-3.5 h-3.5 text-sky-400" /> : <Minimize2 className="w-3.5 h-3.5 text-slate-400" />}
+              <span>{isSidebarCollapsed ? "Afficher Sommaire" : "Plein Écran (Masquer Sommaire)"}</span>
+            </button>
+          )}
         </div>
 
         <h1 className="text-xl sm:text-2xl md:text-3xl font-black text-white">
@@ -131,23 +150,10 @@ export default function LessonView({ lesson, onNavigateLesson }: LessonViewProps
 
       {/* Tab 1: Theory & Demonstration */}
       {activeTab === "theory" && (
-        <div className="space-y-6 animate-fade-in">
-          {/* Theory Card */}
-          <div className="bg-slate-900/80 border border-slate-800 rounded-3xl p-5 sm:p-7 shadow-xl">
-            <h3 className="text-base sm:text-lg font-bold text-white mb-4 flex items-center gap-2">
-              <BookOpen className="w-5 h-5 text-sky-400" />
-              Notions Fondamentales
-            </h3>
-
-            <div
-              className="prose prose-invert prose-sky max-w-none text-slate-300 text-sm leading-relaxed"
-              dangerouslySetInnerHTML={{ __html: lesson.theoryHtml }}
-            />
-          </div>
-
-          {/* Demonstration Card */}
+        <div className="space-y-6 animate-fade-in w-full">
+          {/* Demonstration Card (Prominently Placed at the Top / High Width) */}
           {lesson.demonstration && (
-            <div className="bg-slate-900/80 border border-slate-800 rounded-3xl p-5 sm:p-7 shadow-xl space-y-4">
+            <div className="bg-slate-900/90 border border-sky-800/40 rounded-3xl p-4 sm:p-6 shadow-2xl space-y-4 w-full">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <h3 className="text-base sm:text-lg font-bold text-white flex items-center gap-2">
@@ -155,31 +161,48 @@ export default function LessonView({ lesson, onNavigateLesson }: LessonViewProps
                     Démonstration Visuelle & Sonore
                   </h3>
                   <p className="text-xs text-slate-400 mt-0.5">
-                    Tempo de démo : {lesson.demonstration.bpm} BPM • Les touches s'animent avec les pastilles de doigtés
+                    Tempo : {lesson.demonstration.bpm} BPM • Les touches s'animent en rythme avec les pastilles de doigtés
                   </p>
                 </div>
 
-                <button
-                  onClick={handlePlayDemo}
-                  className={`px-5 py-2.5 rounded-xl font-bold text-sm transition flex items-center gap-2 shadow-lg ${
-                    isDemoPlaying
-                      ? "bg-rose-600 hover:bg-rose-500 text-white shadow-rose-900/30"
-                      : "bg-sky-600 hover:bg-sky-500 text-white shadow-sky-900/30"
-                  }`}
-                >
-                  {isDemoPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
-                  <span>{isDemoPlaying ? "Interrompre la Démo" : "Lancer la Démo 🎹"}</span>
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={handlePlayDemo}
+                    className={`px-5 py-2.5 rounded-xl font-bold text-sm transition flex items-center gap-2 shadow-lg ${
+                      isDemoPlaying
+                        ? "bg-rose-600 hover:bg-rose-500 text-white shadow-rose-900/30"
+                        : "bg-sky-600 hover:bg-sky-500 text-white shadow-sky-900/30"
+                    }`}
+                  >
+                    {isDemoPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+                    <span>{isDemoPlaying ? "Interrompre la Démo" : "Lancer la Démo 🎹"}</span>
+                  </button>
+                </div>
               </div>
 
-              {/* Interactive Keyboard in Playback Mode */}
-              <InteractiveKeyboard
-                mode="playback"
-                activeKeys={activeDemoKeys}
-                showFingeringBadges={true}
-              />
+              {/* Interactive Keyboard in Playback Mode (Takes 100% full width) */}
+              <div className="w-full">
+                <InteractiveKeyboard
+                  mode="playback"
+                  activeKeys={activeDemoKeys}
+                  showFingeringBadges={true}
+                />
+              </div>
             </div>
           )}
+
+          {/* Theory Card */}
+          <div className="bg-slate-900/80 border border-slate-800 rounded-3xl p-5 sm:p-7 shadow-xl">
+            <h3 className="text-base sm:text-lg font-bold text-white mb-4 flex items-center gap-2">
+              <BookOpen className="w-5 h-5 text-sky-400" />
+              Notions Didactiques & Théorie
+            </h3>
+
+            <div
+              className="prose prose-invert prose-sky max-w-none text-slate-300 text-sm leading-relaxed"
+              dangerouslySetInnerHTML={{ __html: lesson.theoryHtml }}
+            />
+          </div>
 
           {/* Quick link to practice */}
           <div className="flex justify-end">
@@ -196,7 +219,7 @@ export default function LessonView({ lesson, onNavigateLesson }: LessonViewProps
 
       {/* Tab 2: Practice Coach */}
       {activeTab === "practice" && (
-        <div className="animate-fade-in">
+        <div className="animate-fade-in w-full">
           <PracticeCoach
             targetBpm={lesson.practiceGuide.bpmTarget}
             pattern={lesson.practiceGuide.fingeringPattern}
@@ -209,7 +232,7 @@ export default function LessonView({ lesson, onNavigateLesson }: LessonViewProps
 
       {/* Tab 3: Evaluation */}
       {activeTab === "eval" && (
-        <div className="animate-fade-in">
+        <div className="animate-fade-in w-full">
           <LessonEvaluator
             evaluationItems={lesson.evaluation}
             passingScore={80}
