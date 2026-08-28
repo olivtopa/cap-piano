@@ -151,7 +151,20 @@ export default function LessonView({
       {/* Tab 1: Theory & Demonstration */}
       {activeTab === "theory" && (
         <div className="space-y-6 animate-fade-in w-full">
-          {/* Demonstration Card (Prominently Placed at the Top / High Width) */}
+          {/* Theory Card (Placed first, right below header) */}
+          <div className="bg-slate-900/80 border border-slate-800 rounded-3xl p-5 sm:p-7 shadow-xl">
+            <h3 className="text-base sm:text-lg font-bold text-white mb-4 flex items-center gap-2">
+              <BookOpen className="w-5 h-5 text-sky-400" />
+              Notions Didactiques & Théorie
+            </h3>
+
+            <div
+              className="prose prose-invert prose-sky max-w-none text-slate-300 text-sm leading-relaxed"
+              dangerouslySetInnerHTML={{ __html: lesson.theoryHtml }}
+            />
+          </div>
+
+          {/* Demonstration Card (Placed below theory, spanning wide width) */}
           {lesson.demonstration && (
             <div className="bg-slate-900/90 border border-sky-800/40 rounded-3xl p-4 sm:p-6 shadow-2xl space-y-4 w-full">
               <div className="flex flex-wrap items-center justify-between gap-3">
@@ -180,7 +193,7 @@ export default function LessonView({
                 </div>
               </div>
 
-              {/* Interactive Keyboard in Playback Mode (Takes 100% full width) */}
+              {/* Interactive Keyboard in Playback Mode (Takes full width) */}
               <div className="w-full">
                 <InteractiveKeyboard
                   mode="playback"
@@ -190,19 +203,6 @@ export default function LessonView({
               </div>
             </div>
           )}
-
-          {/* Theory Card */}
-          <div className="bg-slate-900/80 border border-slate-800 rounded-3xl p-5 sm:p-7 shadow-xl">
-            <h3 className="text-base sm:text-lg font-bold text-white mb-4 flex items-center gap-2">
-              <BookOpen className="w-5 h-5 text-sky-400" />
-              Notions Didactiques & Théorie
-            </h3>
-
-            <div
-              className="prose prose-invert prose-sky max-w-none text-slate-300 text-sm leading-relaxed"
-              dangerouslySetInnerHTML={{ __html: lesson.theoryHtml }}
-            />
-          </div>
 
           {/* Quick link to practice */}
           <div className="flex justify-end">
