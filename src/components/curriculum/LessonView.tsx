@@ -244,6 +244,7 @@ export default function LessonView({
             passingScore={80}
             onComplete={handleEvaluationComplete}
             onNextLesson={handleNextLesson}
+            isSidebarCollapsed={isSidebarCollapsed}
           />
         </div>
       )}

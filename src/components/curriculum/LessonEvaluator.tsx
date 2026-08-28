@@ -11,6 +11,7 @@ export interface LessonEvaluatorProps {
   passingScore?: number;
   onComplete: (score: number, passed: boolean) => void;
   onNextLesson?: () => void;
+  isSidebarCollapsed?: boolean;
 }
 
 export default function LessonEvaluator({
@@ -18,6 +19,7 @@ export default function LessonEvaluator({
   passingScore = 80,
   onComplete,
   onNextLesson,
+  isSidebarCollapsed,
 }: LessonEvaluatorProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
@@ -125,7 +127,13 @@ export default function LessonEvaluator({
     const passed = finalScore >= passingScore;
 
     return (
-      <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 text-center space-y-6 shadow-2xl animate-fade-in">
+      <div
+        className={`bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 text-center space-y-6 shadow-2xl animate-fade-in mr-0 transition-all ${
+          isSidebarCollapsed
+            ? "w-full ml-0"
+            : "w-full lg:w-[calc(100%+21.25rem)] lg:-ml-[21.25rem]"
+        }`}
+      >
         <div className="inline-flex p-4 rounded-3xl bg-slate-800/80 border border-slate-700/60 shadow-inner">
           {passed ? (
             <div className="p-4 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-400 text-slate-950 shadow-lg shadow-emerald-500/20">
@@ -194,7 +202,13 @@ export default function LessonEvaluator({
   const isCurrentCorrect = isAnswerSubmitted ? userAnswers[currentIndex]?.isCorrect : null;
 
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-3xl p-5 sm:p-7 space-y-6 shadow-xl">
+    <div
+      className={`bg-slate-900 border border-slate-800 rounded-3xl p-5 sm:p-7 space-y-6 shadow-xl mr-0 transition-all ${
+        isSidebarCollapsed
+          ? "w-full ml-0"
+          : "w-full lg:w-[calc(100%+21.25rem)] lg:-ml-[21.25rem]"
+      }`}
+    >
       {/* Header with Progress Bar */}
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-2">
@@ -250,19 +264,21 @@ export default function LessonEvaluator({
       {/* Interactive Mode: Spotting on Keyboard */}
       {currentItem.type === "spotting" && (
         <div className="space-y-3">
-          <InteractiveKeyboard
-            mode="spotting"
-            userSelection={userSelectedKeys}
-            onKeyClick={handleKeyClickInSpotting}
-            spottingFeedback={
-              isAnswerSubmitted
-                ? {
-                    correct: currentItem.targetKeys || [],
-                    incorrect: userSelectedKeys.filter((k) => !(currentItem.targetKeys || []).includes(k)),
-                  }
-                : undefined
-            }
-          />
+          <div className="w-full pt-1">
+            <InteractiveKeyboard
+              mode="spotting"
+              userSelection={userSelectedKeys}
+              onKeyClick={handleKeyClickInSpotting}
+              spottingFeedback={
+                isAnswerSubmitted
+                  ? {
+                      correct: currentItem.targetKeys || [],
+                      incorrect: userSelectedKeys.filter((k) => !(currentItem.targetKeys || []).includes(k)),
+                    }
+                  : undefined
+              }
+            />
+          </div>
           <div className="text-center text-xs text-slate-400">
             Touches sélectionnées :{" "}
             {userSelectedKeys.length > 0 ? (
