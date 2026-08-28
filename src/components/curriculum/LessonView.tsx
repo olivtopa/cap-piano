@@ -164,9 +164,15 @@ export default function LessonView({
             />
           </div>
 
-          {/* Demonstration Card (Spanning extra wide width without moving its place) */}
+          {/* Demonstration Card (Aligned to right edge and extended on left to the exact x-coordinate of Parcours Piano) */}
           {lesson.demonstration && (
-            <div className="bg-slate-900/95 border-2 border-sky-600/40 rounded-3xl p-4 sm:p-6 md:p-7 shadow-2xl space-y-4 -mx-1 sm:-mx-3 md:-mx-6 lg:-mx-8 xl:-mx-12 transition-all">
+            <div
+              className={`bg-slate-900/95 border-2 border-sky-600/40 rounded-3xl p-4 sm:p-6 md:p-7 shadow-2xl space-y-4 mr-0 transition-all ${
+                isSidebarCollapsed
+                  ? "w-full ml-0"
+                  : "w-full lg:w-[calc(100%+21.25rem)] lg:-ml-[21.25rem]"
+              }`}
+            >
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <h3 className="text-base sm:text-lg md:text-xl font-black text-white flex items-center gap-2">
@@ -193,7 +199,7 @@ export default function LessonView({
                 </div>
               </div>
 
-              {/* Interactive Keyboard in Playback Mode (Takes full widened width) */}
+              {/* Interactive Keyboard in Playback Mode (Spanning full width from left of Sidebar to right edge) */}
               <div className="w-full pt-1">
                 <InteractiveKeyboard
                   mode="playback"
