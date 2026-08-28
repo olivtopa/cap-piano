@@ -230,7 +230,7 @@ export default function InteractiveKeyboard({
                 key={k.note}
                 type="button"
                 onClick={() => handleKeyClick(k.note)}
-                className={`relative z-10 -mx-[3.2%] sm:-mx-[3%] w-[6.4%] sm:w-[6%] max-w-[34px] min-w-[18px] h-28 sm:h-36 md:h-40 rounded-b-md border-x border-b-4 transition-all duration-75 flex flex-col justify-end items-center pb-2 active:scale-y-95 active:brightness-125 focus:outline-none ${blackBg}`}
+                className={`relative z-10 -mx-[3.2%] sm:-mx-[3%] w-[6.4%] sm:w-[6%] max-w-[36px] min-w-[18px] h-32 sm:h-40 md:h-44 rounded-b-md border-x border-b-4 transition-all duration-75 flex flex-col justify-end items-center pb-2 active:scale-y-95 active:brightness-125 focus:outline-none ${blackBg}`}
                 title={k.note}
               >
                 {/* Fingering Badge */}
@@ -272,7 +272,7 @@ export default function InteractiveKeyboard({
               key={k.note}
               type="button"
               onClick={() => handleKeyClick(k.note)}
-              className={`relative z-0 flex-1 min-w-[28px] max-w-[56px] h-44 sm:h-52 md:h-56 rounded-b-lg border-x border-b-4 transition-all duration-75 flex flex-col justify-end items-center pb-2 active:scale-y-95 active:brightness-95 focus:outline-none ${whiteBg}`}
+              className={`relative z-0 flex-1 min-w-[28px] max-w-[60px] h-48 sm:h-56 md:h-64 rounded-b-lg border-x border-b-4 transition-all duration-75 flex flex-col justify-end items-center pb-2 active:scale-y-95 active:brightness-95 focus:outline-none ${whiteBg}`}
               title={k.note}
             >
               {/* Middle C marker dot */}

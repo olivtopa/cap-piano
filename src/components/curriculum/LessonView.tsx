@@ -164,27 +164,27 @@ export default function LessonView({
             />
           </div>
 
-          {/* Demonstration Card (Placed below theory, spanning wide width) */}
+          {/* Demonstration Card (Spanning extra wide width without moving its place) */}
           {lesson.demonstration && (
-            <div className="bg-slate-900/90 border border-sky-800/40 rounded-3xl p-4 sm:p-6 shadow-2xl space-y-4 w-full">
+            <div className="bg-slate-900/95 border-2 border-sky-600/40 rounded-3xl p-4 sm:p-6 md:p-7 shadow-2xl space-y-4 -mx-1 sm:-mx-3 md:-mx-6 lg:-mx-8 xl:-mx-12 transition-all">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
-                  <h3 className="text-base sm:text-lg font-bold text-white flex items-center gap-2">
+                  <h3 className="text-base sm:text-lg md:text-xl font-black text-white flex items-center gap-2">
                     <Sparkles className="w-5 h-5 text-amber-400" />
                     Démonstration Visuelle & Sonore
                   </h3>
-                  <p className="text-xs text-slate-400 mt-0.5">
-                    Tempo : {lesson.demonstration.bpm} BPM • Les touches s'animent en rythme avec les pastilles de doigtés
+                  <p className="text-xs sm:text-sm text-slate-300 mt-0.5">
+                    Tempo : <span className="font-bold text-sky-400">{lesson.demonstration.bpm} BPM</span> • Touches animées au tempo avec pastilles de doigtés
                   </p>
                 </div>
 
                 <div className="flex items-center gap-2">
                   <button
                     onClick={handlePlayDemo}
-                    className={`px-5 py-2.5 rounded-xl font-bold text-sm transition flex items-center gap-2 shadow-lg ${
+                    className={`px-5 sm:px-6 py-2.5 sm:py-3 rounded-xl font-bold text-sm transition flex items-center gap-2 shadow-xl ${
                       isDemoPlaying
-                        ? "bg-rose-600 hover:bg-rose-500 text-white shadow-rose-900/30"
-                        : "bg-sky-600 hover:bg-sky-500 text-white shadow-sky-900/30"
+                        ? "bg-rose-600 hover:bg-rose-500 text-white shadow-rose-900/40"
+                        : "bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white shadow-sky-900/40"
                     }`}
                   >
                     {isDemoPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
@@ -193,8 +193,8 @@ export default function LessonView({
                 </div>
               </div>
 
-              {/* Interactive Keyboard in Playback Mode (Takes full width) */}
-              <div className="w-full">
+              {/* Interactive Keyboard in Playback Mode (Takes full widened width) */}
+              <div className="w-full pt-1">
                 <InteractiveKeyboard
                   mode="playback"
                   activeKeys={activeDemoKeys}
