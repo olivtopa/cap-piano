@@ -128,11 +128,7 @@ export default function LessonEvaluator({
 
     return (
       <div
-        className={`bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 text-center space-y-6 shadow-2xl animate-fade-in mr-0 transition-all ${
-          isSidebarCollapsed
-            ? "w-full ml-0"
-            : "w-full lg:w-[calc(100%+21.25rem)] lg:-ml-[21.25rem]"
-        }`}
+        className="bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 text-center space-y-6 shadow-2xl animate-fade-in w-full transition-all"
       >
         <div className="inline-flex p-4 rounded-3xl bg-slate-800/80 border border-slate-700/60 shadow-inner">
           {passed ? (
@@ -203,11 +199,7 @@ export default function LessonEvaluator({
 
   return (
     <div
-      className={`bg-slate-900 border border-slate-800 rounded-3xl p-5 sm:p-7 space-y-6 shadow-xl mr-0 transition-all ${
-        isSidebarCollapsed
-          ? "w-full ml-0"
-          : "w-full lg:w-[calc(100%+21.25rem)] lg:-ml-[21.25rem]"
-      }`}
+      className="bg-slate-900 border border-slate-800 rounded-3xl p-5 sm:p-7 space-y-6 shadow-xl w-full transition-all"
     >
       {/* Header with Progress Bar */}
       <div className="flex items-center justify-between gap-4">

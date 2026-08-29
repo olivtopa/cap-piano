@@ -5,7 +5,7 @@ import { Lesson, KeyTarget } from "@/types/curriculum";
 import InteractiveKeyboard from "./InteractiveKeyboard";
 import PracticeCoach from "./PracticeCoach";
 import LessonEvaluator from "./LessonEvaluator";
-import { completeLessonInStore } from "@/lib/store/progressStore";
+import { completeLessonInStore, ALL_LESSON_IDS } from "@/lib/store/progressStore";
 import { audioEngine } from "@/lib/audio/audioEngine";
 import { BookOpen, Music, CheckCircle2, Play, Pause, Sparkles, ChevronRight, Maximize2, Minimize2 } from "lucide-react";
 
@@ -70,9 +70,10 @@ export default function LessonView({
   };
 
   const handleNextLesson = () => {
-    const result = completeLessonInStore(lesson.id, 100);
-    if (result.nextLessonId) {
-      onNavigateLesson(result.nextLessonId);
+    const currentIndex = ALL_LESSON_IDS.indexOf(lesson.id);
+    if (currentIndex !== -1 && currentIndex + 1 < ALL_LESSON_IDS.length) {
+      const nextLessonId = ALL_LESSON_IDS[currentIndex + 1];
+      onNavigateLesson(nextLessonId);
     }
   };
 
@@ -164,14 +165,10 @@ export default function LessonView({
             />
           </div>
 
-          {/* Demonstration Card (Aligned to right edge and extended on left to the exact x-coordinate of Parcours Piano) */}
+          {/* Demonstration Card */}
           {lesson.demonstration && (
             <div
-              className={`bg-slate-900/95 border-2 border-sky-600/40 rounded-3xl p-4 sm:p-6 md:p-7 shadow-2xl space-y-4 mr-0 transition-all ${
-                isSidebarCollapsed
-                  ? "w-full ml-0"
-                  : "w-full lg:w-[calc(100%+21.25rem)] lg:-ml-[21.25rem]"
-              }`}
+              className="bg-slate-900/95 border-2 border-sky-600/40 rounded-3xl p-4 sm:p-6 md:p-7 shadow-2xl space-y-4 w-full transition-all"
             >
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
